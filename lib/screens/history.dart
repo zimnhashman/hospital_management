@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:hospital_management/constants/colors.dart';
@@ -6,15 +5,15 @@ import 'package:hospital_management/constants/colors.dart';
 class History extends StatefulWidget {
   final String userId;
 
-  History({required this.userId});
+  const History({super.key, required this.userId});
 
   @override
   _HistoryState createState() => _HistoryState();
 }
 
 class _HistoryState extends State<History> {
-  bool _loading = false;
-  late List _history;
+  final bool _loading = false;
+  List? _history;
   late double width;
   late double height;
 
@@ -38,13 +37,13 @@ class _HistoryState extends State<History> {
       backgroundColor: backgroundColor,
       appBar: AppBar(
         backgroundColor: primaryColor,
-        title: Text('History'),
+        title: const Text('History'),
       ),
       body: _loading
-          ? Center(child: CircularProgressIndicator())
-          : Container(
+          ? const Center(child: CircularProgressIndicator())
+          : SizedBox(
         height: height,
-        child: _history.length > 0
+        child: _history!.isNotEmpty
             ? SingleChildScrollView(
           child: RefreshIndicator(
             onRefresh: () async {
@@ -57,12 +56,12 @@ class _HistoryState extends State<History> {
               child: ListView.builder(
                   shrinkWrap: true,
                   scrollDirection: Axis.vertical,
-                  itemCount: _history.length,
+                  itemCount: _history!.length,
                   itemBuilder: (context, index) {
                     return GestureDetector(
                       onTap: () {
                         _viewAppointmentDialog(
-                            context, _history[index]);
+                            context, _history![index]);
                       },
                       child: Container(
                         padding: const EdgeInsets.fromLTRB(
@@ -78,7 +77,7 @@ class _HistoryState extends State<History> {
                                 color: Colors.grey.withOpacity(0.5),
                                 spreadRadius: 5,
                                 blurRadius: 7,
-                                offset: Offset(0, 3)),
+                                offset: const Offset(0, 3)),
                           ],
                         ),
                         child: Column(
@@ -88,8 +87,8 @@ class _HistoryState extends State<History> {
                               MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  _history[index]['full_name'],
-                                  style: TextStyle(
+                                  _history![index]['full_name'],
+                                  style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 18,
                                   ),
@@ -102,20 +101,20 @@ class _HistoryState extends State<History> {
                                   decoration: BoxDecoration(
                                       borderRadius:
                                       BorderRadius.circular(10),
-                                      color: _history[index][
+                                      color: _history![index][
                                       'appointment_status'] ==
                                           'COMPLETED'
                                           ? Colors.grey[600]
-                                          : _history[index][
+                                          : _history![index][
                                       'appointment_status'] ==
                                           'CANCELLED'
                                           ? Colors
                                           .redAccent[100]
                                           : Colors.red[600]),
                                   child: Text(
-                                    _history[index]
+                                    _history![index]
                                     ['appointment_status'],
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                         color: colorWhite,
                                         fontWeight:
                                         FontWeight.w500),
@@ -123,14 +122,14 @@ class _HistoryState extends State<History> {
                                 )
                               ],
                             ),
-                            SizedBox(height: 5),
+                            const SizedBox(height: 5),
                             Row(
                               children: [
-                                Container(
+                                SizedBox(
                                   width: width - 80,
                                   height: 50,
                                   child: Text(
-                                    _history[index]['description'],
+                                    _history![index]['description'],
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 2,
                                   ),
@@ -139,23 +138,23 @@ class _HistoryState extends State<History> {
                             ),
                             Row(
                               children: [
-                                Text(
+                                const Text(
                                   'Appointment: ',
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold),
                                 ),
-                                (_history[index]['date'] == null ||
-                                    _history[index]['time'] ==
+                                (_history![index]['date'] == null ||
+                                    _history![index]['time'] ==
                                         null)
-                                    ? Text(
+                                    ? const Text(
                                   'N/A',
                                   style: TextStyle(
                                       fontWeight:
                                       FontWeight.w500),
                                 )
                                     : Text(
-                                  '${_history[index]['date']}  ${_history[index]['time']}',
-                                  style: TextStyle(
+                                  '${_history![index]['date']}  ${_history![index]['time']}',
+                                  style: const TextStyle(
                                       fontWeight:
                                       FontWeight.w500),
                                 ),
@@ -169,7 +168,7 @@ class _HistoryState extends State<History> {
             ),
           ),
         )
-            : Center(
+            : const Center(
           child: Text('No appointment data found!'),
         ),
       ),
@@ -178,7 +177,7 @@ class _HistoryState extends State<History> {
 
   // view appointment details dialog
   Future<Future> _viewAppointmentDialog(context, appointment) async {
-    await Future.delayed(Duration(milliseconds: 100));
+    await Future.delayed(const Duration(milliseconds: 100));
     return showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -198,7 +197,7 @@ class _HistoryState extends State<History> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: primaryColor,
                       shape: BoxShape.rectangle,
                       borderRadius: BorderRadius.only(
@@ -209,72 +208,66 @@ class _HistoryState extends State<History> {
                     height: 70,
                     width: double.infinity,
                     alignment: Alignment.center,
-                    child: Text('Appointment Details',
+                    child: const Text('Appointment Details',
                         style: TextStyle(
                             fontWeight: FontWeight.w500,
                             fontSize: 18,
                             color: colorWhite),
                         textAlign: TextAlign.center),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 10.0,
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Container(
+                    child: SizedBox(
                       height: 200,
                       child: SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            const Text(
                               'Description:',
                               style: TextStyle(
                                   fontWeight: FontWeight.w500, fontSize: 16),
                             ),
                             Text(appointment['description']),
-                            SizedBox(height: 8),
+                            const SizedBox(height: 8),
                             Row(
                               children: [
-                                Text(
+                                const Text(
                                   'Date: ',
                                   style: TextStyle(
                                       fontWeight: FontWeight.w500,
                                       fontSize: 16),
                                 ),
-                                Text(appointment['date'] != null
-                                    ? appointment['date']
-                                    : 'N/A')
+                                Text(appointment['date'] ?? 'N/A')
                               ],
                             ),
                             Row(
                               children: [
-                                Text(
+                                const Text(
                                   'Time: ',
                                   style: TextStyle(
                                       fontWeight: FontWeight.w500,
                                       fontSize: 16),
                                 ),
-                                Text(appointment['time'] != null
-                                    ? appointment['time']
-                                    : 'N/A')
+                                Text(appointment['time'] ?? 'N/A')
                               ],
                             ),
-                            SizedBox(height: 8),
-                            Text(
+                            const SizedBox(height: 8),
+                            const Text(
                               'Comments: ',
                               style: TextStyle(
                                   fontWeight: FontWeight.w500, fontSize: 16),
                             ),
-                            Text(appointment['comments'] != null
-                                ? appointment['comments']
-                                : 'N/A'),
+                            Text(appointment['comments'] ?? 'N/A'),
                           ],
                         ),
                       ),
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   GestureDetector(
                     onTap: () {
                       Navigator.pop(context);
@@ -283,14 +276,14 @@ class _HistoryState extends State<History> {
                       alignment: Alignment.center,
                       height: 30.0,
                       width: double.infinity,
-                      child: Text(
+                      child: const Text(
                         'CLOSE',
                         style: TextStyle(
                             fontSize: 18, fontWeight: FontWeight.w500),
                       ),
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 8,
                   ),
                 ],

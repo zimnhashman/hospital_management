@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hospital_management/constants/colors.dart';
 import 'package:hospital_management/screens/appointments.dart';
 import 'package:hospital_management/screens/history.dart';
-import 'package:hospital_management/screens/lab_reports.dart';
-import 'package:hospital_management/screens/lab_tests.dart';
-import 'package:hospital_management/screens/payable.dart';
-import 'package:hospital_management/screens/prescriptions.dart';
+
 
 class DashboardTiles extends StatefulWidget {
   final String username;
@@ -16,9 +13,12 @@ class DashboardTiles extends StatefulWidget {
   _DashboardTilesState createState() => _DashboardTilesState();
 }
 
+
 class _DashboardTilesState extends State<DashboardTiles> {
+
   late double width;
   late double height;
+
   @override
   Widget build(BuildContext context) {
     width = MediaQuery.of(context).size.width;
@@ -27,7 +27,7 @@ class _DashboardTilesState extends State<DashboardTiles> {
       children: <Widget>[
         Container(
           decoration: BoxDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                   colors: [
                     Colors.purple,
                     Colors.pinkAccent,
@@ -45,12 +45,12 @@ class _DashboardTilesState extends State<DashboardTiles> {
             children: [
               Text(
                 'Welcome ${widget.username},',
-                style: TextStyle(
+                style: const TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.w500,
                     color: Colors.white),
               ),
-              Row(
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
@@ -66,13 +66,13 @@ class _DashboardTilesState extends State<DashboardTiles> {
             ],
           ),
         ),
-        SizedBox(height: 25),
+        const SizedBox(height: 25),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: GridView(
               gridDelegate:
-              SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+              const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
               children: <Widget>[
                 GestureDetector(
                   onTap: () {
@@ -80,14 +80,14 @@ class _DashboardTilesState extends State<DashboardTiles> {
                         context,
                         MaterialPageRoute(
                             builder: (_) =>
-                                Appointments(userId: widget.userId)));
+                                const ViewAllAppointmentsScreen()));
                   },
-                  child: Card(
-                    margin: const EdgeInsets.all(10),
+                  child: const Card(
+                    margin: EdgeInsets.all(10),
                     color: cardColor,
                     elevation: 5.0,
                     child: Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: EdgeInsets.all(8.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -104,94 +104,7 @@ class _DashboardTilesState extends State<DashboardTiles> {
                     ),
                   ),
                 ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => LabTests(userId: widget.userId)));
-                  },
-                  child: Card(
-                    margin: const EdgeInsets.all(10),
-                    color: cardColor,
-                    elevation: 5.0,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Icon(Icons.science_outlined,
-                              size: 50, color: primaryColor),
-                          Text(
-                            'Lab Tests',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w500),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => Payable(userId: widget.userId)));
-                  },
-                  child: Card(
-                    margin: const EdgeInsets.all(10),
-                    color: cardColor,
-                    elevation: 5.0,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Icon(Icons.monetization_on,
-                              size: 50, color: primaryColor),
-                          Text(
-                            'Payable',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w500),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) =>
-                                Prescriptions(userId: widget.userId)));
-                  },
-                  child: Card(
-                    margin: const EdgeInsets.all(10),
-                    color: cardColor,
-                    elevation: 5.0,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Icon(Icons.medical_services,
-                              size: 50, color: primaryColor),
-                          Text(
-                            'Prescriptions',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w500),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+
                 GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -199,12 +112,12 @@ class _DashboardTilesState extends State<DashboardTiles> {
                         MaterialPageRoute(
                             builder: (_) => History(userId: widget.userId)));
                   },
-                  child: Card(
-                    margin: const EdgeInsets.all(10),
+                  child: const Card(
+                    margin: EdgeInsets.all(10),
                     color: cardColor,
                     elevation: 5.0,
                     child: Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: EdgeInsets.all(8.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -213,35 +126,6 @@ class _DashboardTilesState extends State<DashboardTiles> {
                               size: 50, color: primaryColor),
                           Text(
                             'History',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w500),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => LabReports(userId: widget.userId)));
-                  },
-                  child: Card(
-                    margin: const EdgeInsets.all(10),
-                    color: cardColor,
-                    elevation: 5.0,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Icon(Icons.file_copy_rounded,
-                              size: 50, color: primaryColor),
-                          Text(
-                            'Downloads',
                             style: TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.w500),
                           )

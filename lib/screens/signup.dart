@@ -1,8 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:get/route_manager.dart';
+
 import 'package:hospital_management/constants/colors.dart';
+import 'package:hospital_management/database/patient_database.dart';
 import 'package:hospital_management/screens/login_page.dart';
 import 'package:hospital_management/widgets/custom_date_picker_form_field.dart';
 import 'package:hospital_management/widgets/myButton.dart';
@@ -10,31 +10,36 @@ import 'package:hospital_management/widgets/myTextField.dart';
 import 'package:intl/intl.dart';
 
 class SignUp extends StatefulWidget {
+  const SignUp({super.key});
+
   @override
   _SignUpState createState() => _SignUpState();
-
 }
 
 class _SignUpState extends State<SignUp> {
   late double width;
   late double height;
   bool visible = false;
-  bool _loading = false;
+  final bool _loading = false;
 
-  TextEditingController _nameController = TextEditingController();
-  TextEditingController _usernameController = TextEditingController();
-  TextEditingController _emailController = TextEditingController();
-  TextEditingController _contactController = TextEditingController();
-  TextEditingController _addressController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
-  TextEditingController _dateofbirthController = TextEditingController();
-  TextEditingController _genderController = TextEditingController();
-  TextEditingController _bloodTypeController = TextEditingController();
-  TextEditingController _allergiesController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _contactController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _dateofbirthController = TextEditingController();
+  final TextEditingController _genderController = TextEditingController();
+  final TextEditingController _bloodTypeController = TextEditingController();
+  final TextEditingController _allergiesController = TextEditingController();
   DateTime? _dateOfBirth;
 
-  var box = Hive.openBox("mybox");
-  var b = Hive.box("mybox");
+  @override
+  void initState() {
+    super.initState();
+    print('initState called');
+
+  }
 
 
   @override
@@ -53,12 +58,10 @@ class _SignUpState extends State<SignUp> {
     super.dispose();
   }
 
-
-
   String? validateEmail(String value) {
     String pattern =
         r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+";
-    RegExp regExp = new RegExp(pattern);
+    RegExp regExp = RegExp(pattern);
 
     if (value.isEmpty) {
       return 'Email address is required';
@@ -70,15 +73,36 @@ class _SignUpState extends State<SignUp> {
 
   String? validateMobile(String value) {
     String pattern = r'(^(?:[+0]9)?[0-9]{10,12}$)';
-    RegExp regExp = new RegExp(pattern);
+    RegExp regExp = RegExp(pattern);
 
-    if (value.length == 0) {
+    if (value.isEmpty) {
       return 'Mobile number is required';
     }
     else if (!regExp.hasMatch(value)) {
       return 'Please enter a valid mobile number';
     }
     return null;
+  }
+
+  void _storeSignUpData() async {
+    PatientDatabaseHelper dbHelper = PatientDatabaseHelper.instance;
+
+    // Insert a new patient
+    await dbHelper.insertPatient({
+      'username': _usernameController.text,
+      'email': _emailController.text,
+      'name': _nameController.text,
+      'contact': _contactController.text,
+      'address': _addressController.text,
+      'gender': _genderController.text,
+      'password': _passwordController.text,
+      'allergies': _allergiesController.text,
+      'date_of_birth': _dateofbirthController.text,
+    });
+
+    // Retrieve patient details by username
+    Map<String, dynamic>? patient = await dbHelper.getPatientByUsername('john_doe');
+    print(patient);
   }
 
   @override
@@ -90,7 +114,7 @@ class _SignUpState extends State<SignUp> {
       child: Scaffold(
         backgroundColor: backgroundColor,
         body: _loading
-            ? Center(child: CircularProgressIndicator())
+            ? const Center(child: CircularProgressIndicator())
             : Center(
           child: SingleChildScrollView(
             child: Container(
@@ -99,7 +123,7 @@ class _SignUpState extends State<SignUp> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
+                    const Text(
                       'REGISTER',
                       style: TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 28),
@@ -108,7 +132,7 @@ class _SignUpState extends State<SignUp> {
                     //   signup_image,
                     //   height: width * 0.50,
                     // ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     // full name
                     MyTextField(
                       controller: _nameController,
@@ -242,37 +266,13 @@ class _SignUpState extends State<SignUp> {
                     // login button
                     GestureDetector(
                       onTap: () {
-                        b.put("username", _usernameController.text);
-                        b.put("name", _nameController.text);
-                        b.put("email", _emailController.text);
-                        b.put("contact", _contactController.text);
-                        b.put("address", _addressController.text);
-                        b.put("gender", _genderController.text);
-                        b.put("password", _passwordController.text);
-                        b.put("allergies", _allergiesController.text);
-                        b.put("dateOfBirth", _dateOfBirth);
-
-                        // final entity = PatientCompanion(
-                        //   userName: drift.Value(_usernameController.text),
-                        //   name: drift.Value(_nameController.text),
-                        //   email: drift.Value(_emailController.text),
-                        //   contact: drift.Value(_contactController.text),
-                        //   address: drift.Value(_addressController.text),
-                        //   gender: drift.Value(_genderController.text),
-                        //   password: drift.Value(_passwordController.text),
-                        //   allergies: drift.Value(_allergiesController.text),
-                        //   dateOfBirth: drift.Value(_dateOfBirth! as String),
-                        // );
-
-                       // _db.insertPatient(entity);
-                        final SnackBar _snackBar = SnackBar(
-                          content: b.get('email'),
-                          duration: Duration(seconds: 5),);
-
-                        ScaffoldMessenger.of(context).showSnackBar(_snackBar);
-
+                        _storeSignUpData;
+                        // final SnackBar _snackBar = SnackBar(
+                        //   content: b.get('email'),
+                        //   duration: Duration(seconds: 5),);
+                        // ScaffoldMessenger.of(context).showSnackBar(_snackBar);
+                        Get.to(() => const LoginPage());
                       },
-
                       child: MyButton(
                         text: 'SIGNUP',
                         btnColor: primaryColor,
@@ -284,12 +284,12 @@ class _SignUpState extends State<SignUp> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
+                        const Text(
                           'Already have an account?',
                           style: TextStyle(
                               color: primaryColor, fontSize: 16),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           width: 5,
                         ),
                         GestureDetector(
@@ -297,9 +297,9 @@ class _SignUpState extends State<SignUp> {
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (_) => LoginPage()));
+                                    builder: (_) => const LoginPage()));
                           },
-                          child: Text(
+                          child: const Text(
                             'Log in',
                             style: TextStyle(
                                 color: primaryColor,
@@ -338,7 +338,7 @@ class _SignUpState extends State<SignUp> {
               onSurface: Colors.black,
             )
           ), 
-          child: child ?? Text(''),
+          child: child ?? const Text(''),
         )
     );
     

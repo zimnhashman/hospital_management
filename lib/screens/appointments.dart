@@ -1,614 +1,293 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:hospital_management/constants/colors.dart';
-import 'package:hospital_management/widgets/MyTextField.dart';
+import 'package:hospital_management/database/database_helper.dart';
+import 'package:hospital_management/screens/add_appointment_screen.dart';
 
-class Appointments extends StatefulWidget {
-  final String userId;
-
-  Appointments({required this.userId});
+class ViewAllAppointmentsScreen extends StatefulWidget {
+  const ViewAllAppointmentsScreen({super.key});
 
   @override
-  _AppointmentsState createState() => _AppointmentsState();
+  _ViewAllAppointmentsScreenState createState() =>
+      _ViewAllAppointmentsScreenState();
 }
 
-class _AppointmentsState extends State<Appointments> {
-  bool _loading = false;
-  late List _appointments;
-  late List _doctors;
-  late double width;
-  late double height;
-  var _selectedDocotor;
-  String dropdownValue = 'Update';
-
-  TextEditingController _descriptionController = TextEditingController();
+class _ViewAllAppointmentsScreenState extends State<ViewAllAppointmentsScreen> {
+  final DatabaseHelper _databaseHelper = DatabaseHelper.instance;
+  List<Map<String, dynamic>> _appointments = [];
+  String selectedOption = 'Prescriptions';
 
   @override
   void initState() {
-    // _getAppointments();
-    // _getDoctors();
     super.initState();
+    _loadAppointments();
   }
 
-  @override
-  void dispose() {
-    _descriptionController.dispose();
-    super.dispose();
+  Future<void> _loadAppointments() async {
+    List<Map<String, dynamic>> appointments =
+        await _databaseHelper.getAppointments();
+    setState(() {
+      _appointments = appointments;
+    });
   }
-
 
   @override
   Widget build(BuildContext context) {
-    width = MediaQuery.of(context).size.width;
-    height = MediaQuery.of(context).size.height;
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('All Appointments'),
+        ),
+        body: _appointments.isEmpty
+            ? const Center(
+                child: Text('No appointments available.'),
+              )
+            : Column(
+                children: [
+                  const Text('Select View Per Appointment'),
+                  Padding(
 
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      appBar: AppBar(
-        backgroundColor: primaryColor,
-        title: Text('Appointments'),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        label: Text('New Appointment'),
-        onPressed: () {
-          _addNewAppointmentDialog(context);
-        },
-        icon: Icon(Icons.calendar_today_outlined),
-      ),
-      body: _loading
-          ? Center(child: CircularProgressIndicator())
-          : Container(
-        height: height,
-        child: _appointments.length > 0
-            ? SingleChildScrollView(
-          child: RefreshIndicator(
-            onRefresh: () async {
-            //  _getAppointments();
-            },
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              height: height * 0.85,
-              width: double.infinity,
-              child: ListView.builder(
-                  shrinkWrap: true,
-                  scrollDirection: Axis.vertical,
-                  itemCount: _appointments.length,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      padding:
-                      const EdgeInsets.fromLTRB(20, 10, 20, 6),
-                      margin:
-                      const EdgeInsets.fromLTRB(20, 10, 20, 10),
-                      width: width,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: colorWhite,
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 5,
-                              blurRadius: 7,
-                              offset: Offset(0, 3)),
-                        ],
-                      ),
-                      child: Column(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        RadioListTile<String>(
+                          title: const Text('View Prescriptions'),
+                          value: 'Prescriptions',
+                          groupValue: selectedOption,
+                          onChanged: (value) {
+                            setState(() {
+                              selectedOption = value!;
+                            });
+                          },
+                        ),
+                        RadioListTile<String>(
+                          title: const Text('View Lab Reports'),
+                          value: 'Lab Reports',
+                          groupValue: selectedOption,
+                          onChanged: (value) {
+                            setState(() {
+                              selectedOption = value!;
+                            });
+                          },
+                        ),
+                        RadioListTile<String>(
+                          title: const Text('View Lab Tests'),
+                          value: 'Lab Tests',
+                          groupValue: selectedOption,
+                          onChanged: (value) {
+                            setState(() {
+                              selectedOption = value!;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10.0,
+                  ),
+                  ListView.builder(
+                    itemCount: _appointments.length,
+                    itemBuilder: (context, index) {
+                      return Column(
+
                         children: [
-                          Row(
-                            mainAxisAlignment:
-                            MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                _appointments[index]['full_name'],
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 2, horizontal: 5),
-                                decoration: BoxDecoration(
-                                    borderRadius:
-                                    BorderRadius.circular(10),
-                                    color: _appointments[index][
-                                    'appointment_status'] ==
-                                        'PENDING'
-                                        ? Colors.orange
-                                        : _appointments[index][
-                                    'appointment_status'] ==
-                                        'ACCEPTED'
-                                        ? Colors.green
-                                        : Colors.blue[700]),
-                                child: Text(
-                                  _appointments[index]
-                                  ['appointment_status'],
-                                  style: TextStyle(
-                                      color: colorWhite,
-                                      fontWeight: FontWeight.w500),
-                                ),
-                              )
-                            ],
-                          ),
-                          SizedBox(height: 5),
-                          Row(
-                            children: [
-                              Container(
-                                width: width - 80,
-                                height: 50,
-                                child: Text(
-                                  _appointments[index]
-                                  ['description'],
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 2,
-                                ),
-                              )
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              Text(
-                                'Appointment: ',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              (_appointments[index]['date'] ==
-                                  null ||
-                                  _appointments[index]
-                                  ['time'] ==
-                                      null)
-                                  ? Text(
-                                'N/A',
-                                style: TextStyle(
-                                    fontWeight:
-                                    FontWeight.w500),
-                              )
-                                  : Text(
-                                '${_appointments[index]['date']}  ${_appointments[index]['time']}',
-                                style: TextStyle(
-                                    fontWeight:
-                                    FontWeight.w500),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment:
-                            MainAxisAlignment.end,
-                            children: [
-                              Expanded(
-                                child: DropdownButton<String>(
-                                  isDense: true,
-                                  isExpanded: true,
-                                  icon: Icon(
-                                    Icons.more_horiz,
+                          ListTile(
+                            title: Text(_appointments[index]['appointment_title']),
+                            subtitle: Text(
+                                'Date: ${_appointments[index]['appointment_date']}'),
+                            trailing: Text(
+                              _appointments[index]['appointment_complete'] == 1
+                                  ? 'Complete'
+                                  : 'Incomplete',
+                            ),
+                            onTap: () {
+                              // Navigate to ViewLabReportsScreen, ViewLabTestsScreen, or ViewPrescriptionsScreen with the selected appointmentId
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ViewPrescriptionsScreen(
+                                    appointmentId: _appointments[index]['id'],
                                   ),
-                                  underline: Container(
-                                    height: 0,
-                                    color: Colors.deepPurpleAccent,
-                                  ),
-                                  onChanged: (String? newValue) {
-                                    setState(() {
-                                      dropdownValue = newValue!;
-                                    });
-                                  },
-                                  items: <String>[
-                                    'View',
-                                    'Update',
-                                    'Cancel'
-                                  ].map<DropdownMenuItem<String>>(
-                                          (String value) {
-                                        return DropdownMenuItem<String>(
-                                          value: value,
-                                          child: Text(value),
-                                          onTap: () {
-                                            print(value);
-                                            print(_appointments[index]);
-
-                                            if (value == 'View') {
-                                              _viewAppointmentDialog(
-                                                  context,
-                                                  _appointments[index]);
-                                            } else if (value ==
-                                                'Cancel' ||
-                                                value == 'Update') {
-                                              if (_appointments[index][
-                                              'appointment_status'] ==
-                                                  'CANCELLED' ||
-                                                  _appointments[index][
-                                                  'appointment_status'] ==
-                                                      'REJECTED' ||
-                                                  _appointments[index][
-                                                  'appointment_status'] ==
-                                                      'COMPLETED') {
-                                              }
-                                            }
-                                          },
-                                        );
-                                      }).toList(),
                                 ),
-                              ),
-                            ],
+                              );
+                            },
                           ),
                         ],
-                      ),
-                    );
-                  }),
-            ),
-          ),
-        )
-            : Center(
-          child: Text('No appointment data found!'),
+                      );
+                    },
+                  ),
+
+                ],
+              ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            // Navigate to AddAppointmentScreen
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AddAppointmentScreen()),
+            ).then((value) {
+              // Refresh the list when returning from AddAppointmentScreen
+              _loadAppointments();
+            });
+          },
+          child: const Icon(Icons.add),
         ),
       ),
     );
   }
+}
 
-// adding new appointment dialog
-  Future _addNewAppointmentDialog(context) {
-    return showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            backgroundColor: Colors.transparent,
-            child: Container(
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              width: double.infinity,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: primaryColor,
-                      shape: BoxShape.rectangle,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(16.0),
-                        topRight: Radius.circular(16.0),
-                      ),
-                    ),
-                    height: 70,
-                    width: double.infinity,
-                    alignment: Alignment.center,
-                    child: Text('New Appointment',
-                        style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 18,
-                            color: colorWhite),
-                        textAlign: TextAlign.center),
-                  ),
-                  SizedBox(
-                    height: 10.0,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Form(
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10.0, vertical: 10.0),
-                            child: DropdownButtonFormField(
-                              value: _selectedDocotor,
-                              items: _doctors
-                                  .map((value) => DropdownMenuItem(
-                                child: Text(value["full_name"]),
-                                value: value,
-                              ))
-                                  .toList(),
-                              onChanged: (value) {
-                                print('inside on change');
-                                setState(() {
-                                  _selectedDocotor = value;
-                                  print('set change: $value');
-                                });
-                              },
-                              isExpanded: true,
-                              iconEnabledColor: primaryColor,
-                              dropdownColor: fillColor,
-                              isDense: true,
-                              iconSize: 30.0,
-                              decoration: InputDecoration(
-                                prefixIcon: Icon(
-                                 Icons.person,
-                                  color: primaryColor,
-                                ),
-                                filled: true,
-                                fillColor: fillColor,
-                                labelText: _selectedDocotor == null
-                                    ? 'Select the Doctor'
-                                    : 'Doctor',
-                                contentPadding:
-                                EdgeInsets.fromLTRB(16, 10, 0, 10),
-                                hintStyle: TextStyle(color: hintColor),
-                                hintText: "Select the Doctor",
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
-                                      color: primaryColor, width: 1.0),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
-                                      color: primaryColor, width: 1.0),
-                                ),
-                                errorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide:
-                                  BorderSide(color: errorColor, width: 1),
-                                ),
-                                focusedErrorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide:
-                                  BorderSide(color: errorColor, width: 1),
-                                ),
-                                errorStyle: TextStyle(),
-                              ),
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ),
-                          MyTextField(
-                            hint: 'Description',
-                            icon: Icons.note,
-                            isMultiline: true,
-                            maxLines: 5,
-                            controller: _descriptionController,
-                            validation: (val) {
-                              if (val.isEmpty) {
-                                return 'A description is required';
-                              }
-                              return null;
-                            },
-                          ),
-                          GestureDetector(
-                            onTap: () {
+class ViewLabReportsScreen extends StatefulWidget {
+  final int appointmentId;
 
-                            },
-                            child: Container(
-                              alignment: Alignment.center,
-                              height: 30.0,
-                              width: double.infinity,
-                              child: Text(
-                                'SAVE',
-                                style: TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.w500),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 8,
-                  ),
-                ],
-              ),
-            ),
-          );
-        });
+  const ViewLabReportsScreen({super.key, required this.appointmentId});
+
+  @override
+  _ViewLabReportsScreenState createState() => _ViewLabReportsScreenState();
+}
+
+class _ViewLabReportsScreenState extends State<ViewLabReportsScreen> {
+  final DatabaseHelper _databaseHelper = DatabaseHelper.instance;
+  List<Map<String, dynamic>> _labReports = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLabReports();
   }
 
-  // update appointments dialog
-  Future<Future> _updateAppointmentDialog(context, appointmentId) async {
-    await Future.delayed(Duration(milliseconds: 100));
-    return showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            backgroundColor: Colors.transparent,
-            child: Container(
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              width: double.infinity,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: primaryColor,
-                      shape: BoxShape.rectangle,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(16.0),
-                        topRight: Radius.circular(16.0),
-                      ),
-                    ),
-                    height: 70,
-                    width: double.infinity,
-                    alignment: Alignment.center,
-                    child: Text('Update Appointment Details',
-                        style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 18,
-                            color: colorWhite),
-                        textAlign: TextAlign.center),
-                  ),
-                  SizedBox(
-                    height: 10.0,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Form(
-
-                      child: Column(
-                        children: [
-                          MyTextField(
-                            hint: 'Description',
-                            icon: Icons.note,
-                            isMultiline: true,
-                            maxLines: 5,
-                            controller: _descriptionController,
-                            validation: (val) {
-                              if (val.isEmpty) {
-                                return 'The description is required';
-                              }
-                              return null;
-                            },
-                          ),
-                          GestureDetector(
-                            onTap: () {
-
-                            },
-                            child: Container(
-                              alignment: Alignment.center,
-                              height: 30.0,
-                              width: double.infinity,
-                              child: Text(
-                                'SAVE',
-                                style: TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.w500),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 8,
-                  ),
-                ],
-              ),
-            ),
-          );
-        });
+  Future<void> _loadLabReports() async {
+    List<Map<String, dynamic>> labReports =
+        await _databaseHelper.getLabReports(widget.appointmentId);
+    setState(() {
+      _labReports = labReports;
+    });
   }
 
-  // view appointment details dialog
-  Future<Future> _viewAppointmentDialog(context, appointment) async {
-    await Future.delayed(Duration(milliseconds: 100));
-    return showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Lab Reports'),
+      ),
+      body: _labReports.isEmpty
+          ? const Center(
+              child: Text('No lab reports available for this appointment.'),
+            )
+          : ListView.builder(
+              itemCount: _labReports.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(_labReports[index]['report_name']),
+                  subtitle: Text('Date: ${_labReports[index]['date']}'),
+                  trailing: Text('Result: ${_labReports[index]['result']}'),
+                );
+              },
             ),
-            backgroundColor: Colors.transparent,
-            child: Container(
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              width: double.infinity,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: primaryColor,
-                      shape: BoxShape.rectangle,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(16.0),
-                        topRight: Radius.circular(16.0),
-                      ),
-                    ),
-                    height: 70,
-                    width: double.infinity,
-                    alignment: Alignment.center,
-                    child: Text('Appointment Details',
-                        style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 18,
-                            color: colorWhite),
-                        textAlign: TextAlign.center),
-                  ),
-                  SizedBox(
-                    height: 10.0,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Form(
-                      child: Container(
-                        height: 200,
-                        child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Description:',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w500, fontSize: 16),
-                              ),
-                              Text(appointment['description']),
-                              SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Text(
-                                    'Date: ',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 16),
-                                  ),
-                                  Text(appointment['date'] != null
-                                      ? appointment['date']
-                                      : 'N/A')
-                                ],
-                              ),
-                              Row(
-                                children: [
-                                  Text(
-                                    'Time: ',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 16),
-                                  ),
-                                  Text(appointment['time'] != null
-                                      ? appointment['time']
-                                      : 'N/A')
-                                ],
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                'Comments: ',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w500, fontSize: 16),
-                              ),
-                              Text(appointment['comments'] != null
-                                  ? appointment['comments']
-                                  : 'N/A'),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      alignment: Alignment.center,
-                      height: 30.0,
-                      width: double.infinity,
-                      child: Text(
-                        'CLOSE',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.w500),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 8,
-                  ),
-                ],
-              ),
+    );
+  }
+}
+
+class ViewLabTestsScreen extends StatefulWidget {
+  final int appointmentId;
+
+  const ViewLabTestsScreen({super.key, required this.appointmentId});
+
+  @override
+  _ViewLabTestsScreenState createState() => _ViewLabTestsScreenState();
+}
+
+class _ViewLabTestsScreenState extends State<ViewLabTestsScreen> {
+  final DatabaseHelper _databaseHelper = DatabaseHelper.instance;
+  List<Map<String, dynamic>> _labTests = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLabTests();
+  }
+
+  Future<void> _loadLabTests() async {
+    List<Map<String, dynamic>> labTests =
+        await _databaseHelper.getLabTests(widget.appointmentId);
+    setState(() {
+      _labTests = labTests;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Lab Tests'),
+      ),
+      body: _labTests.isEmpty
+          ? const Center(
+              child: Text('No lab tests available for this appointment.'),
+            )
+          : ListView.builder(
+              itemCount: _labTests.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(_labTests[index]['test_name']),
+                  subtitle: Text('Date: ${_labTests[index]['date']}'),
+                  trailing: Text('Result: ${_labTests[index]['result']}'),
+                );
+              },
             ),
-          );
-        });
+    );
+  }
+}
+
+class ViewPrescriptionsScreen extends StatefulWidget {
+  final int appointmentId;
+
+  const ViewPrescriptionsScreen({super.key, required this.appointmentId});
+
+  @override
+  _ViewPrescriptionsScreenState createState() =>
+      _ViewPrescriptionsScreenState();
+}
+
+class _ViewPrescriptionsScreenState extends State<ViewPrescriptionsScreen> {
+  final DatabaseHelper _databaseHelper = DatabaseHelper.instance;
+  List<Map<String, dynamic>> _prescriptions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPrescriptions();
+  }
+
+  Future<void> _loadPrescriptions() async {
+    List<Map<String, dynamic>> prescriptions =
+        await _databaseHelper.getPrescriptions(widget.appointmentId);
+    setState(() {
+      _prescriptions = prescriptions;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Prescriptions'),
+      ),
+      body: _prescriptions.isEmpty
+          ? const Center(
+              child: Text('No prescriptions available for this appointment.'),
+            )
+          : ListView.builder(
+              itemCount: _prescriptions.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(_prescriptions[index]['medicine_name']),
+                  subtitle: Text('Dosage: ${_prescriptions[index]['dosage']}'),
+                  trailing: Text('Date: ${_prescriptions[index]['date']}'),
+                );
+              },
+            ),
+    );
   }
 }
